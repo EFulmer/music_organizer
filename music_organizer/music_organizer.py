@@ -58,10 +58,14 @@ def organize_files(folder):
             audio = EasyMP3(f)
             # TODO change this to use os.path.join later on!
             # function to make file name might be useful too? or function that takes constructor name and filename and does this work in it?
-            new_path = u'/Users/eric/Music/' + audio[u'artist'][0] + '/' + audio[u'album'][0] + '/' + audio[u'tracknumber'][0].zfill(2) + '-' + audio[u'title'][0] + '.mp3'
-            # TODO Find a better way of handling this case (folder already exists)
-            try: 
+            # new_path = u'/Users/eric/Music/' + audio[u'artist'][0] + '/' + audio[u'album'][0] + '/' + audio[u'tracknumber'][0].zfill(2) + '-' + audio[u'title'][0] + '.mp3'
+            new_path = os.path.join('/Users/eric/Music', audio[u'artist'][0], 
+                                    audio[u'album'][0])
+            #TODO make nicer
+            new path += audio[u'tracknumber'][0].zfill(2) + '-' + audio[u'title'][0] + '.mp3'
+            if not os.path.isdir(os.path.abspath(os.path.join(new_path, os.pardir))):
                 os.makedirs(os.path.abspath(os.path.join(new_path, os.pardir)))
+            
             shutil.move(os.path.join(folder, f), new_path)
 
 
