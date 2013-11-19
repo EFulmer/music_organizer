@@ -17,6 +17,15 @@ def move_flac(flac):
 
 
 def move_m4a(m4a):
+    # Keys for tags:
+    # 'cpil': Is this track part of a compilation?
+    # 'disk': (on disk #, of # disks)
+    # 'purd': purchase date
+    # 'soal': song album
+    # 'soar': song artist
+    # 'sonm': song title
+    # 'trkn': (track #, out of #)
+    # TODO
     pass
 
 
@@ -40,10 +49,12 @@ def move_mp3(mp3):
     track_dir = os.path.join('/Users/eric/Music', audio[u'artist'][0], 
                             audio[u'album'][0])
     track_name = audio[u'tracknumber'][0].zfill(2) + '-' + audio[u'title'][0] + '.mp3'
-    if not os.path.isdir(os.path.abspath(os.path.join(new_path, os.pardir))):
-        os.makedirs(os.path.abspath(os.path.join(new_path, os.pardir)))
+    if not os.path.isdir(os.path.join(track_dir, track_name)):
+        os.makedirs(track_dir)
             
-    shutil.move(os.path.join(folder, f), new_path)
+    shutil.copyfile(mp3, os.path.join(track_dir, track_name))
+    # TODO: check that the file copied successfully with MD5s!
+    # also more console output to confirm to the user that it copied!!
 
 
 def organize_files(folder):
@@ -60,22 +71,13 @@ def organize_files(folder):
             # TODO
             move_flac(f)
         elif f.lower().endswith('.m4a'):
-            # Keys for tags:
-            # 'cpil': Is this track part of a compilation?
-            # 'disk': (on disk #, of # disks)
-            # 'purd': purchase date
-            # 'soal': song album
-            # 'soar': song artist
-            # 'sonm': song title
-            # 'trkn': (track #, out of #)
-            # TODO
             move_m4a(f)
         elif f.lower().endswith('.mp3'):
             move_mp3(f)
 
 def main():
-    print sys.argv[1]
-    organize_files(sys.argv[1])
+    for folder in sys.argv[1:]
+        organize_files(folder)
 
 if __name__ == '__main__':
     main()
