@@ -2,6 +2,7 @@
 # Output: Rearranged directory structure. Each audio file in the directory should be reorganized according to the following structure:
 # "song" by artist on album should be in ArtistName/AlbumName/tracknum - song.mp3
 
+import hashlib
 import os
 import os.path
 import shutil
@@ -12,7 +13,31 @@ from mutagen.m4a import M4A
 from mutagen.mp3 import EasyMP3
 
 
+def compare_files(f1, f2):
+    """
+    Compare two files for equality by comparing their SHA256 hashes.
+    """
+    hash_1 = hashlib.sha256()
+    hash_2 = hashlib.sha256()
+
+    with open(f1, 'rb') as f:
+        cur_chunk = f.read(128)
+
+        while len(cur_chunk) > 0:
+            hash_1.update(cur_chunk)
+            cur_chunk = f.read(128)
+
+    with open(f2, 'rb') as f:
+        cur_chunk = f.read(128)
+
+        while len(cur_chunk) > 0:
+            hash_2.update(cur_chunk)
+            cur_chunk = f.read(128)
+    
+    return hash_1.hexdigest() == hash_2.hexdigest()
+
 def move_flac(flac):
+    # TODO
     pass
 
 
@@ -49,12 +74,15 @@ def move_mp3(mp3):
     track_dir = os.path.join('/Users/eric/Music', audio[u'artist'][0], 
                             audio[u'album'][0])
     track_name = audio[u'tracknumber'][0].zfill(2) + '-' + audio[u'title'][0] + '.mp3'
-    if not os.path.isdir(os.path.join(track_dir, track_name)):
+    new_track = os.path.join(track_dir, track_name)
+    if not os.path.isdir(track_dir):
         os.makedirs(track_dir)
             
     shutil.copyfile(mp3, os.path.join(track_dir, track_name))
     # TODO: check that the file copied successfully with MD5s!
     # also more console output to confirm to the user that it copied!!
+    # print '{0} copied to {1} successfully!'.format(mp3, os.path.join
+    
 
 
 def organize_files(folder):
@@ -76,7 +104,7 @@ def organize_files(folder):
             move_mp3(f)
 
 def main():
-    for folder in sys.argv[1:]
+    for folder in sys.argv[1:]:
         organize_files(folder)
 
 if __name__ == '__main__':
