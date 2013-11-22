@@ -2,6 +2,7 @@
 # Output: Rearranged directory structure. Each audio file in the directory should be reorganized according to the following structure:
 # "song" by artist on album should be in ArtistName/AlbumName/tracknum - song.mp3
 
+from __future__ import print_function
 import hashlib
 import os
 import os.path
@@ -17,6 +18,9 @@ def compare_files(f1, f2):
     """
     Compare two files for equality by comparing their SHA256 hashes.
     """
+    # TODO make usable for an arbitrary number of files. idea - make a 
+    # class inheriting file that overrides __eq__.
+    # OTHER TODO: benchmark this
     hash_1 = hashlib.sha256()
     hash_2 = hashlib.sha256()
 
@@ -69,8 +73,6 @@ def move_mp3(mp3):
     # 'tracknumber' - str list; track #
     # 'disknumber' - str list; disk #
     audio = EasyMP3(mp3)
-    # function to make file name might be useful too? or function that takes constructor name and filename and does this work in it?
-    # new_path = u'/Users/eric/Music/' + audio[u'artist'][0] + '/' + audio[u'album'][0] + '/' + audio[u'tracknumber'][0].zfill(2) + '-' + audio[u'title'][0] + '.mp3'
     track_dir = os.path.join('/Users/eric/Music', audio[u'artist'][0], 
                             audio[u'album'][0])
     track_name = audio[u'tracknumber'][0].zfill(2) + '-' + audio[u'title'][0] + '.mp3'
@@ -78,11 +80,11 @@ def move_mp3(mp3):
     if not os.path.isdir(track_dir):
         os.makedirs(track_dir)
             
-    shutil.copyfile(mp3, os.path.join(track_dir, track_name))
-    # TODO: check that the file copied successfully with MD5s!
-    # also more console output to confirm to the user that it copied!!
-    # print '{0} copied to {1} successfully!'.format(mp3, os.path.join
-    
+    shutil.copyfile(mp3, new_track)
+    if compare_files(mp3, new_track):
+        print('Copied {0} to {1} successfully.'.format(mp3, new_track))
+    else:
+        print('Moving {0} to {1} failed.'.format(mp3, new_track))
 
 
 def organize_files(folder):
