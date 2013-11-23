@@ -13,6 +13,8 @@ from mutagen.flac import FLAC
 from mutagen.m4a import M4A
 from mutagen.mp3 import EasyMP3
 
+from user_preferences import naming_style
+
 
 def compare_files(f1, f2):
     """
@@ -39,6 +41,22 @@ def compare_files(f1, f2):
             cur_chunk = f.read(128)
     
     return hash_1.hexdigest() == hash_2.hexdigest()
+
+
+def tags_to_names(fmt, tag_dict):
+    """Convert the tag names from fmt to the names used to rename the music file."""
+    names = {}
+    if fmt == 'flac'
+        pass
+    elif fmt == 'm4a':
+        pass
+    elif fmt == 'mp3':
+        names['artist_name'] = tag_dict[u'artist'][0]
+        names['album_name'] = tag_dict[u'album'][0]
+        names['track_num'] = tag_dict[u'tracknumber'][0]
+        names['track_title'] = tag_dict[u'title'][0]
+    return names
+
 
 def move_flac(flac):
     # TODO
