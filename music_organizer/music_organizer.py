@@ -1,6 +1,5 @@
 # Input: directory name
-# Output: Rearranged directory structure. Each audio file in the directory should be reorganized according to the following structure:
-# "song" by artist on album should be in ArtistName/AlbumName/tracknum - song.mp3
+# Output: Rearranged directory structure.
 
 from __future__ import print_function
 import hashlib
