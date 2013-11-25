@@ -45,7 +45,7 @@ def compare_files(f1, f2):
 def tags_to_names(fmt, tag_dict):
     """Convert the tag names from fmt to the names used to rename the music file."""
     names = {}
-    if fmt == 'flac'
+    if fmt == 'flac':
         pass
     elif fmt == 'm4a':
         pass
@@ -87,16 +87,17 @@ def move_mp3(mp3):
     # 'artist' - str list; see above
     # 'title' - str list; the song's title
     # 'date' - str list; date the song was released
-    # 'tracknumber' - str list; track #
+    # 'tracknumber' - str list; track #/total tracks
     # 'disknumber' - str list; disk #
     audio = EasyMP3(mp3)
     track_dir = os.path.join('/Users/eric/Music', audio[u'artist'][0], 
                             audio[u'album'][0])
-    track_name = audio[u'tracknumber'][0].zfill(2) + '-' + audio[u'title'][0] + '.mp3'
+    track_num = audio[u'tracknumber'][0].split('/')[0]
+    track_name = track_num.zfill(2) + '-' + audio[u'title'][0] + '.mp3'
     new_track = os.path.join(track_dir, track_name)
     if not os.path.isdir(track_dir):
         os.makedirs(track_dir)
-            
+    
     shutil.copyfile(mp3, new_track)
     if compare_files(mp3, new_track):
         print('Copied {0} to {1} successfully.'.format(mp3, new_track))
