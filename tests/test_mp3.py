@@ -5,7 +5,8 @@ from mutagen import EasyMP3
 import music_organizer
 
 # TODO: Constants for test file name and expected output file's name.
-
+NUM_TESTS = 1
+TEST_FILES = [ 'mp3test{0}.mp3'.format(i) for i in range(NUM_TESTS) ]
 
 class MP3Tests(unittest.TestCase):
     

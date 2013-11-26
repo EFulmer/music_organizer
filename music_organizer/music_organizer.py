@@ -13,6 +13,7 @@ from mutagen.m4a import M4A
 from mutagen.mp3 import EasyMP3
 
 from user_preferences import naming_style
+from user_preferences import zero_padding
 
 
 def compare_files(f1, f2):
@@ -46,14 +47,20 @@ def tags_to_names(fmt, tag_dict):
     """Convert the tag names from fmt to the names used to rename the music file."""
     names = {}
     if fmt == 'flac':
+        # TODO
         pass
     elif fmt == 'm4a':
+        # TODO
         pass
     elif fmt == 'mp3':
         names['artist_name'] = tag_dict[u'artist'][0]
         names['album_name'] = tag_dict[u'album'][0]
-        names['track_num'] = tag_dict[u'tracknumber'][0]
+        names['track_num'] = int(tag_dict[u'tracknumber'][0]) # i don't like this
         names['track_title'] = tag_dict[u'title'][0]
+        names['ext'] = fmt
+        names['zero_padding'] = zero_padding
+    else:
+        raise ValueError('expected music format name')
     return names
 
 
@@ -90,19 +97,21 @@ def move_mp3(mp3):
     # 'tracknumber' - str list; track #/total tracks
     # 'disknumber' - str list; disk #
     audio = EasyMP3(mp3)
-    track_dir = os.path.join('/Users/eric/Music', audio[u'artist'][0], 
-                            audio[u'album'][0])
-    track_num = audio[u'tracknumber'][0].split('/')[0]
-    track_name = track_num.zfill(2) + '-' + audio[u'title'][0] + '.mp3'
-    new_track = os.path.join(track_dir, track_name)
+    # track_dir = os.path.join('/Users/eric/Music', audio[u'artist'][0], 
+    #                        audio[u'album'][0])
+    # track_num = audio[u'tracknumber'][0].split('/')[0]
+    # track_name = track_num.zfill(2) + '-' + audio[u'title'][0] + '.mp3'
+    # new_track = os.path.join(track_dir, track_name)
+    track_name = naming_style.format(**tags_to_names('mp3', audio))
+    track_dir = os.path.join( *track_name.split(os.path.sep)[:-1] )
     if not os.path.isdir(track_dir):
         os.makedirs(track_dir)
     
-    shutil.copyfile(mp3, new_track)
-    if compare_files(mp3, new_track):
-        print('Copied {0} to {1} successfully.'.format(mp3, new_track))
+    shutil.copyfile(mp3, track_name)
+    if compare_files(mp3, track_name):
+        print('Copied {0} to {1} successfully.'.format(mp3, track_name))
     else:
-        print('Moving {0} to {1} failed.'.format(mp3, new_track))
+        print('Moving {0} to {1} failed.'.format(mp3, track_name))
 
 
 def organize_files(folder):
