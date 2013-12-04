@@ -46,16 +46,38 @@ def compare_files(f1, f2):
 def tags_to_names(fmt, tag_dict):
     """Convert the tag names from fmt to the names used to rename the music file."""
     names = {}
+    names['ext'] = fmt
+    names['zero_padding'] = zero_padding
     if fmt == 'flac':
         # TODO
         pass
     elif fmt == 'm4a':
-        # TODO
-        pass
+        # Keys for tags:
+        # 'cpil': Is this track part of a compilation?
+        # 'disk': (on disk #, of # disks)
+        # 'purd': purchase date
+        # 'soal': song album
+        # 'soar': song artist
+        # 'sonm': song title
+        # 'trkn': (track #, out of #)
+        names['artist_name'] = tag_dict[u'soar']
+        names['album_name'] = tag_dict[u'soal']
+        names['track_num'] = tag_dict[u'trkn'][0]
+        names['track_title'] = tag_dict[u'sonm']
+        names['ext'] = fmt
+        names['zero_padding'] = zero_padding
     elif fmt == 'mp3':
+        # Keys for EasyMP3 tags:
+        # 'album' - str list; album name
+        # 'performer' - str list; is this album artist or regular artist or what?
+        # 'artist' - str list; see above
+        # 'title' - str list; the song's title
+        # 'date' - str list; date the song was released
+        # 'tracknumber' - str list; track #/total tracks
+        # 'disknumber' - str list; disk #
         names['artist_name'] = tag_dict[u'artist'][0]
         names['album_name'] = tag_dict[u'album'][0]
-        names['track_num'] = int(tag_dict[u'tracknumber'][0]) # i don't like this
+        names['track_num'] = int(tag_dict[u'tracknumber'][0])
         names['track_title'] = tag_dict[u'title'][0]
         names['ext'] = fmt
         names['zero_padding'] = zero_padding
@@ -64,22 +86,32 @@ def tags_to_names(fmt, tag_dict):
     return names
 
 
+# TODO can refactor these three functions into one that grabs 
+# the ext (only takes the filename) and passes it to tags_to_names.
+# refactor tags_to_names to actually open the file using the right 
+# constructor and return the filename.
 def move_flac(flac):
     # TODO
     pass
 
 
 def move_m4a(m4a):
-    # Keys for tags:
-    # 'cpil': Is this track part of a compilation?
-    # 'disk': (on disk #, of # disks)
-    # 'purd': purchase date
-    # 'soal': song album
-    # 'soar': song artist
-    # 'sonm': song title
-    # 'trkn': (track #, out of #)
-    # TODO
-    pass
+    """
+    Move the file into its proper directory, according to path.
+    
+    mp3 - full path to an MP3 file
+    """
+    audio = M4A(m4a)
+    track_name = naming_style.format(**tags_to_names('m4a', audio))
+    track_dir = os.path.join( *track_name.split(os.path.sep)[:-1] )
+    if not os.path.isdir(track_dir):
+        os.makedirs(track_dir)
+    
+    shutil.copyfile(mp3, track_name)
+    if compare_files(mp3, track_name):
+        print('Copied {0} to {1} successfully.'.format(mp3, track_name))
+    else:
+        print('Moving {0} to {1} failed.'.format(mp3, track_name))
 
 
 def move_mp3(mp3):
@@ -88,20 +120,7 @@ def move_mp3(mp3):
     
     mp3 - full path to an MP3 file
     """
-    # Keys for EasyMP3 tags:
-    # 'album' - str list; album name
-    # 'performer' - str list; is this album artist or regular artist or what?
-    # 'artist' - str list; see above
-    # 'title' - str list; the song's title
-    # 'date' - str list; date the song was released
-    # 'tracknumber' - str list; track #/total tracks
-    # 'disknumber' - str list; disk #
     audio = EasyMP3(mp3)
-    # track_dir = os.path.join('/Users/eric/Music', audio[u'artist'][0], 
-    #                        audio[u'album'][0])
-    # track_num = audio[u'tracknumber'][0].split('/')[0]
-    # track_name = track_num.zfill(2) + '-' + audio[u'title'][0] + '.mp3'
-    # new_track = os.path.join(track_dir, track_name)
     track_name = naming_style.format(**tags_to_names('mp3', audio))
     track_dir = os.path.join( *track_name.split(os.path.sep)[:-1] )
     if not os.path.isdir(track_dir):
