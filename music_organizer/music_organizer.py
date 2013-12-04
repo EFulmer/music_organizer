@@ -20,10 +20,7 @@ def compare_files(f1, f2):
     """
     Compare two files for equality by comparing their SHA256 hashes.
     """
-    # TODO make usable for an arbitrary number of files. idea - make a 
-    # class inheriting file that overrides __eq__.
-    # OTHER TODO: benchmark this
-    hash_1 = hashlib.sha256()
+    hash_1 = hashlib.sha256() 
     hash_2 = hashlib.sha256()
 
     with open(f1, 'rb') as f:
@@ -41,6 +38,57 @@ def compare_files(f1, f2):
             cur_chunk = f.read(128)
     
     return hash_1.hexdigest() == hash_2.hexdigest()
+
+
+def move_audio(audio):
+    """"""
+    fmt = os.path.splitext(audio)[1]
+    names = {}
+    names['ext'] = fmt
+    names['zero_padding'] = zero_padding
+    if fmt == '.flac':
+        # TODO
+        pass
+    elif fmt == '.m4a':
+        # Keys for tags:
+        # 'cpil': Is this track part of a compilation?
+        # 'disk': (on disk #, of # disks)
+        # 'purd': purchase date
+        # 'soal': song album
+        # 'soar': song artist
+        # 'sonm': song title
+        # 'trkn': (track #, out of #)
+        song = M4A(audio)
+        names['artist_name'] = song[u'soar']
+        names['album_name'] = song[u'soal']
+        names['track_num'] = song[u'trkn'][0]
+        names['track_title'] = song[u'sonm']
+    elif fmt == '.mp3':
+        # Keys for EasyMP3 tags:
+        # 'album' - str list; album name
+        # 'performer' - str list; is this album artist or regular artist or what?
+        # 'artist' - str list; see above
+        # 'title' - str list; the song's title
+        # 'date' - str list; date the song was released
+        # 'tracknumber' - str list; track #/total tracks
+        # 'disknumber' - str list; disk #
+        song = EasyMP3(audio)
+        names['artist_name'] = song[u'artist'][0]
+        names['album_name'] = song[u'album'][0]
+        names['track_num'] = int(song[u'tracknumber'][0])
+        names['track_title'] = song[u'title'][0]
+    else:
+        raise ValueError('expected music format name')
+    track_name = naming_style.format(**names)
+    track_dir = os.path.dirname(track_name)
+    if not os.path.isdir(track_dir):
+        os.makedirs(track_dir)
+    
+    shutil.copyfile(audio, track_name)
+    if compare_files(audio, track_name):
+        print('Copied {0} to {1} successfully.'.format(audio, track_name))
+    else:
+        print('Moving {0} to {1} failed.'.format(audio, track_name))
 
 
 def tags_to_names(fmt, tag_dict):
@@ -143,13 +191,14 @@ def organize_files(folder):
     files = [ os.path.join(folder, f) for f in os.listdir(folder) 
               if os.path.isfile(os.path.join(folder, f)) ]
     for f in files:
-        if f.lower().endswith('.flac'):
+        move_audio(f)
+        # if f.lower().endswith('.flac'):
             # TODO
-            move_flac(f)
-        elif f.lower().endswith('.m4a'):
-            move_m4a(f)
-        elif f.lower().endswith('.mp3'):
-            move_mp3(f)
+            # move_flac(f)
+        # elif f.lower().endswith('.m4a'):
+            # move_m4a(f)
+        # elif f.lower().endswith('.mp3'):
+            # move_mp3(f)
 
 def main():
     for folder in sys.argv[1:]:
