@@ -12,6 +12,7 @@ from mutagen.flac import FLAC
 from mutagen.m4a import M4A
 from mutagen.mp3 import EasyMP3
 
+from audio_formats import audio_formats
 from user_preferences import naming_style
 from user_preferences import zero_padding
 
@@ -43,6 +44,23 @@ def compare_files(f1, f2):
 def move_audio(audio):
     """"""
     fmt = os.path.splitext(audio)[1]
+    tags = tags_to_names(fmt, audio)
+    track_name = naming_style.format(**tags)
+    track_dir = os.path.dirname(track_name)
+    if not os.path.isdir(track_dir):
+        os.makedirs(track_dir)
+    
+    shutil.copyfile(audio, track_name)
+    if compare_files(audio, track_name):
+        print('Copied {0} to {1} successfully.'.format(audio, track_name))
+    else:
+        print('Moving {0} to {1} failed.'.format(audio, track_name))
+
+
+def tags_to_names(fmt, song):
+    """
+    Convert the tag names from fmt to the names used to rename the music file.
+    """
     names = {}
     names['ext'] = fmt
     names['zero_padding'] = zero_padding
@@ -58,11 +76,11 @@ def move_audio(audio):
         # 'soar': song artist
         # 'sonm': song title
         # 'trkn': (track #, out of #)
-        song = M4A(audio)
-        names['artist_name'] = song[u'soar']
-        names['album_name'] = song[u'soal']
-        names['track_num'] = song[u'trkn'][0]
-        names['track_title'] = song[u'sonm']
+        metadata = M4A(song)
+        names['artist_name'] = metadata[u'soar']
+        names['album_name'] = metadata[u'soal']
+        names['track_num'] = metadata[u'trkn'][0]
+        names['track_title'] = metadata[u'sonm']
     elif fmt == '.mp3':
         # Keys for EasyMP3 tags:
         # 'album' - str list; album name
@@ -72,65 +90,11 @@ def move_audio(audio):
         # 'date' - str list; date the song was released
         # 'tracknumber' - str list; track #/total tracks
         # 'disknumber' - str list; disk #
-        song = EasyMP3(audio)
-        names['artist_name'] = song[u'artist'][0]
-        names['album_name'] = song[u'album'][0]
-        names['track_num'] = int(song[u'tracknumber'][0])
-        names['track_title'] = song[u'title'][0]
-    else:
-        raise ValueError('expected music format name')
-    track_name = naming_style.format(**names)
-    track_dir = os.path.dirname(track_name)
-    if not os.path.isdir(track_dir):
-        os.makedirs(track_dir)
-    
-    shutil.copyfile(audio, track_name)
-    if compare_files(audio, track_name):
-        print('Copied {0} to {1} successfully.'.format(audio, track_name))
-    else:
-        print('Moving {0} to {1} failed.'.format(audio, track_name))
-
-
-def tags_to_names(fmt, tag_dict):
-    """
-    Convert the tag names from fmt to the names used to rename the music file.
-    """
-    names = {}
-    names['ext'] = fmt
-    names['zero_padding'] = zero_padding
-    if fmt == 'flac':
-        # TODO
-        pass
-    elif fmt == 'm4a':
-        # Keys for tags:
-        # 'cpil': Is this track part of a compilation?
-        # 'disk': (on disk #, of # disks)
-        # 'purd': purchase date
-        # 'soal': song album
-        # 'soar': song artist
-        # 'sonm': song title
-        # 'trkn': (track #, out of #)
-        names['artist_name'] = tag_dict[u'soar']
-        names['album_name'] = tag_dict[u'soal']
-        names['track_num'] = tag_dict[u'trkn'][0]
-        names['track_title'] = tag_dict[u'sonm']
-        names['ext'] = fmt
-        names['zero_padding'] = zero_padding
-    elif fmt == 'mp3':
-        # Keys for EasyMP3 tags:
-        # 'album' - str list; album name
-        # 'performer' - str list; is this album artist or regular artist or what?
-        # 'artist' - str list; see above
-        # 'title' - str list; the song's title
-        # 'date' - str list; date the song was released
-        # 'tracknumber' - str list; track #/total tracks
-        # 'disknumber' - str list; disk #
-        names['artist_name'] = tag_dict[u'artist'][0]
-        names['album_name'] = tag_dict[u'album'][0]
-        names['track_num'] = int(tag_dict[u'tracknumber'][0])
-        names['track_title'] = tag_dict[u'title'][0]
-        names['ext'] = fmt
-        names['zero_padding'] = zero_padding
+        metadata = EasyMP3(song)
+        names['artist_name'] = metadata[u'artist'][0]
+        names['album_name'] = metadata[u'album'][0]
+        names['track_num'] = int(metadata[u'tracknumber'][0])
+        names['track_title'] = metadata[u'title'][0]
     else:
         raise ValueError('expected music format name')
     return names
@@ -138,13 +102,17 @@ def tags_to_names(fmt, tag_dict):
 
 def organize_files(folder):
     """
-    Moves all audio files in folder to the user's music library.
+    Move all audio files in folder (not including its subdirectories) 
+    to the user's music library.
 
-    folder - full path to folder containing audio files
+    folder - full path to directory containing audio files
     """
-
+    
+    # TODO this is ugly.
     files = [ os.path.join(folder, f) for f in os.listdir(folder) 
-              if os.path.isfile(os.path.join(folder, f)) ]
+              if os.path.isfile(os.path.join(folder, f)) 
+              and os.path.splitext(f)[1] in audio_formats ]
+
     for f in files:
         move_audio(f)
 
