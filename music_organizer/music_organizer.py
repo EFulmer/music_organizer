@@ -43,6 +43,8 @@ def compare_files(f1, f2):
 
 def move_audio(audio):
     """"""
+    # TODO just straight up copy and compare non-audio files (album 
+    # art etc) or something; poss. rename fn to reflect change.
     fmt = os.path.splitext(audio)[1]
     tags = tags_to_names(fmt, audio)
     track_name = naming_style.format(**tags)
@@ -66,6 +68,17 @@ def tags_to_names(fmt, song):
     names['zero_padding'] = zero_padding
     if fmt == '.flac':
         # TODO
+        # Keys for tags:
+        # 'date': year of release
+        # 'album': album title
+        # 'title': track title
+        # 'tracknumber': track number (how does it handle total tracks?)
+        # 'artist': artist name
+        metadata = FLAC(song)
+        names['artist_name'] = metadata[u'artist']
+        names['album_name'] = metadata[u'album']
+        names['track_num'] = metadata[u'tracknumber']
+        names['track_title'] = metadata[u'title']
         pass
     elif fmt == '.m4a':
         # Keys for tags:
@@ -109,6 +122,8 @@ def organize_files(folder):
     """
     
     # TODO this is ugly.
+    # probably want to just copy non-audio files without anything 
+    # special being done.
     files = [ os.path.join(folder, f) for f in os.listdir(folder) 
               if os.path.isfile(os.path.join(folder, f)) 
               and os.path.splitext(f)[1] in audio_formats ]
