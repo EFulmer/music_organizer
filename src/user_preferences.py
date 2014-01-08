@@ -3,5 +3,4 @@
 # TODO: make OS-agnostic; i.e. list as such ['Users', 'eric', 'Music', '{artist_name}',] etc.
 
 zero_padding = 2
-naming_style = '/Users/eric/Music/{artist_name}/{album_name}/{track_num:0{zero_padding}}-{track_title}.{ext}'
-
+naming_style = '/Users/eric/Music/{artist_name}/{album_name}/{track_num:0>{zero_padding}}-{track_title}{ext}'
