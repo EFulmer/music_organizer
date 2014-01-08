@@ -73,8 +73,6 @@ def tags_to_names(fmt, song):
         # 'title': track title
         # 'tracknumber': track number (how does it handle total tracks?)
         # 'artist': artist name
-        # TODO: Flac is being funny (i.e. [u'Bob Dylan'] not 'Bob 
-        # Dylan'. Fix it
         metadata = FLAC(song)
         names['artist_name'] = metadata[u'artist'][0]
         names['album_name'] = metadata[u'album'][0]
