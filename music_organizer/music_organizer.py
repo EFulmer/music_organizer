@@ -5,15 +5,13 @@ from __future__ import print_function
 import argparse
 import hashlib
 import os
-import os.path
 import shutil
 import sys
 
 from mutagenwrapper import read_tags
+import yaml
 
 from constants import DEFAULT_LIB, AUDIO_FORMATS
-from user_preferences import naming_format
-from user_preferences import zero_padding
 
 
 def compare_files(f1, f2):
@@ -40,6 +38,18 @@ def compare_files(f1, f2):
     return hash_1.hexdigest() == hash_2.hexdigest()
 
 
+def load_yaml(yaml_file):
+    """
+    Load YAML object from yaml_file.
+    """
+    if os.path.isabs(yaml_file):
+        return yaml.load(file(yaml_file, 'r'))
+    else:
+        pwd = os.path.dirname(os.path.realpath(__file__))
+        yaml_path = os.path.join(pwd, yaml_file)
+        return yaml.load(file(yaml_path, 'r'))
+
+
 def move_audio(audio, library, verbose, dry_run):
     """
     Copy audio to library.
@@ -47,22 +57,25 @@ def move_audio(audio, library, verbose, dry_run):
     try:
         # tag values are stored in lists so we unpack them here:
         tags = { k:v[0] for (k,v) in read_tags(audio).iteritems() }
-    except ID3NoHeaderError:
+    # TODO handle multiple types of exceptions here.
+    except Exception as e:
+        print(type(e))
+        print(e.message)
         print("Error: {} has no ID3 tags. Moving on to next file.".format(audio))
         return
 
     # TODO this is ugly!
+    settings = load_yaml('settings.yaml')
     tags['ext'] = os.path.splitext(audio)[1]
-    tags['zero_padding'] = zero_padding
-    dest = naming_format.format(**tags)
-
-    
+    tags = dict(tags.items() + settings.items())
+    dest = settings['naming_format'].format(**tags)
+ 
     if verbose or dry_run:
         print('Copying {} to {}.'.format(audio, dest))
     if not dry_run: 
         shutil.copy2(audio, dest)
         if not compare_files(audio, dest):
-            print('Error in copying {} from {}. Moving on to next ' \ 
+            print('Error in copying {} from {}. Moving on to next ' \
                   'file'.format(audio, dest))
 
 

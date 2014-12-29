@@ -1,0 +1,2 @@
+naming_format:  /Users/eric/Music/{artist}/{album}/{tracknumber:0>{zero_padding}}-{title}{ext}
+zero_padding:   2
